@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
     android:paddingTop="60dp"
-    android:paddingBottom="50dp">
+    android:paddingBottom="10dp">
 
     <ImageView
-        android:id="@+id/img_video"
+        android:id="@+id/img_main"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:background="@drawable/shape_circle"
@@ -18,29 +19,44 @@
         android:layout_centerHorizontal="true" />
 
     <TextView
+        android:id="@+id/txtHint"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fontFamily="@font/raleway_medium"
+        android:layout_below="@+id/img_main"
         android:gravity="center"
         android:paddingLeft="70dp"
         android:paddingRight="70dp"
         android:text="Choose a video from your device to get started."
-        android:textSize="18sp"
         android:textColor="@color/colorSecondaryText"
-        android:layout_below="@+id/img_video"/>
+        android:fontFamily="@font/raleway_medium"
+        android:textSize="18sp" />
 
     <Button
-        android:id="@+id/btn_choose_file"
+        android:id="@+id/btn_main"
         android:layout_width="200dp"
         android:layout_height="55dp"
         android:text="Choose file"
         android:fontFamily="@font/raleway_medium"
         android:onClick="ChooseFile"
-        android:layout_alignParentBottom="true"
         android:background="@drawable/shape_btn"
         android:textColor="@color/colorTextIcons"
         android:layout_centerHorizontal="true"
         android:elevation="0dp"
-        android:paddingBottom="0dp"/>
+        android:paddingBottom="0dp"
+        android:layout_above="@+id/btn_retry" />
+
+    <Button
+        android:id="@+id/btn_retry"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:text="Choose another"
+        android:textSize="12sp"
+        android:textAllCaps="false"
+        android:fontFamily="@font/raleway_medium"
+        android:textColor="@color/colorSecondaryText"
+        android:background="@android:color/transparent"
+        android:visibility="invisible"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"/>
 
 </RelativeLayout>

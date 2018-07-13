@@ -2,6 +2,7 @@ package com.example.deanf.arvideo;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.google.ar.sceneform.ux.ArFragment;
@@ -11,6 +12,8 @@ public class ARActivity extends AppCompatActivity {
     private VideoView videoView;
 //    private ModelRenderable andyRenderable;
 
+    private String filepath;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -18,6 +21,7 @@ public class ARActivity extends AppCompatActivity {
         arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
         videoView = findViewById(R.id.video_view);
 
-
+        filepath = getIntent().getStringExtra("Filepath");
+        Toast.makeText(this, filepath, Toast.LENGTH_SHORT).show();
     }
 }
