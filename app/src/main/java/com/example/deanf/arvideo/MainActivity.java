@@ -105,9 +105,9 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(getFileIntent, PICK_FILE_REQUEST);
         }
         else {
-            // Tell the user that they need a file manager
+            // Tell the user that they need a media manager
             Snackbar snackbar = Snackbar.make(layout,
-                    "Please ensure you have a file manager installed.", 3000);
+                    "Please ensure you have a media manager installed.", 3000);
             snackbar.show();
         }
     }

@@ -21,7 +21,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".ARActivity"
-            android:parentActivityName=".MainActivity">
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/ARTheme">
         </activity>
     </application>
 
