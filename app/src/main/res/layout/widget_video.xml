@@ -4,53 +4,51 @@
     android:layout_height="wrap_content">
     <VideoView
         android:id="@+id/video_view"
-        android:layout_width="640dp"
-        android:layout_height="360dp"
-        android:background="@color/colorPrimaryText"/>
+        android:layout_width="256dp"
+        android:layout_height="144dp" />
+
     <SeekBar
         android:id="@+id/seek_bar"
-        android:layout_width="640dp"
-        android:layout_height="match_parent"
-        android:layout_marginTop="320dp"/>
+        android:layout_width="256dp"
+        android:layout_height="20dp"
+        android:layout_below="@id/video_view"/>
 
     <LinearLayout
-        android:layout_width="640dp"
+        android:layout_width="256dp"
         android:layout_height="wrap_content"
         android:layout_below="@+id/video_view"
         android:orientation="horizontal"
         android:gravity="center"
-        android:layout_marginTop="45dp">
+        android:layout_alignBottom="@+id/seek_bar"
+        android:layout_marginTop="60px">
 
         <ImageButton
             android:id="@+id/btn_back"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:src="@drawable/ic_replay_10_24dp"
             android:background="@android:color/transparent"
             android:scaleType="fitCenter"
-            android:layout_below="@+id/video_view"
             android:layout_toLeftOf="@+id/btn_toggle"/>
 
         <ImageButton
             android:id="@+id/btn_toggle"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:src="@drawable/ic_pause_circle_filled_24dp"
             android:background="@android:color/transparent"
             android:scaleType="fitCenter"
-            android:layout_below="@+id/video_view"
             android:layout_centerHorizontal="true"
             android:layout_marginRight="20dp"
             android:layout_marginLeft="20dp"/>
 
         <ImageButton
             android:id="@+id/btn_forward"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:src="@drawable/ic_forward_30_24dp"
             android:background="@android:color/transparent"
             android:scaleType="fitCenter"
-            android:layout_below="@+id/video_view"
             android:layout_centerHorizontal="true"/>
     </LinearLayout>
 </RelativeLayout>
