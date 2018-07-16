@@ -1,20 +1,19 @@
-package com.example.deanf.arvideo;
+package com.example.deanf.argallery;
 
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.media.ThumbnailUtils;
 import android.net.Uri;
-import android.os.PersistableBundle;
 import android.provider.MediaStore;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.CursorLoader;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.TypefaceSpan;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -24,6 +23,9 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.File;
+
 
 public class MainActivity extends AppCompatActivity {
     final private int PICK_FILE_REQUEST = 1253;
@@ -43,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Update font of action bar
-        SpannableString s = new SpannableString("AR Video");
+        SpannableString s = new SpannableString(getString(R.string.app_name));
         s.setSpan(new TypefaceSpan("raleway_bold.ttf"), 0, s.length(),
                 Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         ActionBar actionBar = getSupportActionBar();
@@ -83,22 +85,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private String getPath(Context context, Uri uri) {
-        String result = null;
-        String[] proj = {MediaStore.Images.Media.DATA};
-        Cursor cursor = context.getContentResolver().query(uri, proj, null, null,null);
-        if(cursor != null){
-            if (cursor.moveToFirst()) {
-                int column_index = cursor.getColumnIndexOrThrow(proj[0]);
-                result = cursor.getString(column_index);
-            }
-            cursor.close();
-        }
+        String[] proj = { MediaStore.Images.Media.DATA };
+        CursorLoader loader = new CursorLoader(context, uri, proj, null, null, null);
+        Cursor cursor = loader.loadInBackground();
+        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+        cursor.moveToFirst();
+        String result = cursor.getString(column_index);
+        cursor.close();
         return result;
     }
 
     private void chooseFile() {
         // Create file explorer intent for result
-        Intent getFileIntent = new Intent(Intent.ACTION_PICK, MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
+        Intent getFileIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);
+        getFileIntent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
 
         // Make sure that the user has something to find the file with
         if (getFileIntent.resolveActivity(getPackageManager()) != null) {
@@ -116,9 +116,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == PICK_FILE_REQUEST) {
             if(resultCode == RESULT_OK) {
+
                 // Get the file path from the result intent
                 Uri pathURI = data.getData();
-                String videoPath = getPath(MainActivity.this, pathURI);
+
+                String videoPath = getPath(this, pathURI);
+//                Log.i("Path", videoPath);
+
                 if(videoPath != null) {
                     filePath = videoPath;
                     String fileName = videoPath.substring(videoPath.lastIndexOf("/") + 1);

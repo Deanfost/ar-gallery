@@ -13,7 +13,7 @@
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:background="@drawable/shape_circle"
-        android:src="@drawable/ic_video_library_24dp"
+        android:src="@drawable/ic_photo_24dp"
         android:padding="20dp"
         android:layout_marginBottom="25dp"
         android:layout_centerHorizontal="true" />
@@ -26,7 +26,7 @@
         android:gravity="center"
         android:paddingLeft="70dp"
         android:paddingRight="70dp"
-        android:text="Choose a video from your device to get started."
+        android:text="Choose a photo from your device to get started."
         android:textColor="@color/colorSecondaryText"
         android:fontFamily="@font/raleway_medium"
         android:textSize="18sp" />
