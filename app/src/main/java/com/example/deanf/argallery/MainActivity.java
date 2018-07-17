@@ -1,11 +1,17 @@
 package com.example.deanf.argallery;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.CursorLoader;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -29,6 +35,7 @@ import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
     final private int PICK_FILE_REQUEST = 1253;
+    final private int READ_PERMISSION_REQUEST = 1324;
 
     private RelativeLayout layout;
     private ImageView imageView;
@@ -63,8 +70,24 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if(!canLaunch) {
-                    // Choose a file
-                    chooseFile();
+                    // Check permissions
+                    if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                            != PackageManager.PERMISSION_GRANTED) {
+                        // Check if the user stopped permission requests
+                        if(!ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                            Snackbar snackbar = Snackbar.make(layout, "Please enable file permissions in settings.", 5000);
+                            snackbar.show();
+                            return;
+                        }
+                        // Request permissions
+                        ActivityCompat.requestPermissions(MainActivity.this,
+                                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                                READ_PERMISSION_REQUEST);
+                    }
+                    else {
+                        // Choose a file
+                        chooseFile();
+                    }
                 }
                 else {
                     // Move to AR Activity
@@ -78,8 +101,18 @@ public class MainActivity extends AppCompatActivity {
         btnRetry.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Retry file choosing
-                chooseFile();
+                // Check permissions
+                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    // Request permissions
+                    ActivityCompat.requestPermissions(MainActivity.this,
+                            new String[]{Manifest.permission.READ_CONTACTS},
+                            READ_PERMISSION_REQUEST);
+                }
+                else {
+                    // Choose a file
+                    chooseFile();
+                }
             }
         });
     }
@@ -121,7 +154,6 @@ public class MainActivity extends AppCompatActivity {
                 Uri pathURI = data.getData();
 
                 String videoPath = getPath(this, pathURI);
-//                Log.i("Path", videoPath);
 
                 if(videoPath != null) {
                     filePath = videoPath;
@@ -142,6 +174,26 @@ public class MainActivity extends AppCompatActivity {
                     Snackbar snackbar = Snackbar.make(layout, "An error occurred. Please try again.", 3000);
                     snackbar.show();
                 }
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case READ_PERMISSION_REQUEST: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Permission was granted, proceed with file selection
+                    chooseFile();
+                } else {
+                    // Permission was denied, tell the user why we need it
+                    Snackbar snackbar = Snackbar.make(layout, "Please grant file read permissions.", 5000);
+                    snackbar.show();
+                }
+                return;
             }
         }
     }

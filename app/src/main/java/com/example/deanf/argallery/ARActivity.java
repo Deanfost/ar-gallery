@@ -24,7 +24,7 @@ public class ARActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final double MIN_OPENGL_VERSION = 3.1;
     // Scaling from pixels to meters (1080px -> .54m)
-    private static final double IMAGE_SCALE_FACTOR = .0005;
+    private static final double IMAGE_SCALE_FACTOR = 1;
 
     private ArFragment arFragment;
     ImageNode imageNode;
@@ -46,8 +46,6 @@ public class ARActivity extends AppCompatActivity {
         arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
         filepath = getIntent().getStringExtra("Filepath");
         layout = findViewById(R.id.ar_layout);
-
-        Toast.makeText(this, filepath, Toast.LENGTH_SHORT).show();
 
         // Create the first ImageNode
         imageNode = new ImageNode(filepath, IMAGE_SCALE_FACTOR, ARActivity.this);
