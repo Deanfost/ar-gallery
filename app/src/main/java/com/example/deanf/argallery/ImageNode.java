@@ -12,36 +12,38 @@ import com.google.ar.sceneform.HitTestResult;
 import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.ViewRenderable;
+import com.google.ar.sceneform.ux.TransformableNode;
+import com.google.ar.sceneform.ux.TransformationSystem;
 
 import java.io.File;
 
-public class ImageNode extends Node implements Node.OnTapListener {
+public class ImageNode extends TransformableNode implements Node.OnTapListener {
     private Bitmap image;
     private float imgWidth, imgHeight;
-//    private double imageScale;
     public boolean imageLoaded, metaLoaded = false;
     private String filepath;
 
     private Node imageNode;
-    ViewRenderable imageViewRenderable;
+    private ViewRenderable imageViewRenderable;
     private Node metaDataNode;
-    ViewRenderable metaViewRenderable;
-    private final Context context;
+    private ViewRenderable metaViewRenderable;
+    private Context context;
 
-    public ImageNode(String filePath, double imageScale, Context context) {
+    public ImageNode(TransformationSystem transformationSystem) {
+        super(transformationSystem);
+    }
+
+    public void initialize(String filepath, Context context) {
+        this.filepath = filepath;
+        this.context = context;
+        setOnTapListener(this);
+        this.setEnabled(false);
+
         // Calculate dimens of the image, set references
-        image = BitmapFactory.decodeFile(filePath);
+        image = BitmapFactory.decodeFile(filepath);
         imgWidth = image.getWidth();
         imgHeight = image.getHeight();
 
-        this.filepath = filePath;
-        this.context = context;
-//        this.imageScale = imageScale;
-        setOnTapListener(this);
-        this.setEnabled(false);
-    }
-
-    public void initialize() {
         // Setup the ImageView and MetaData renderables
         imageNode = new Node();
         imageNode.setParent(this);
@@ -65,6 +67,7 @@ public class ImageNode extends Node implements Node.OnTapListener {
                     attemptPositionMetaNode();
                 })
                 .exceptionally((throwable -> {
+                    System.out.println(throwable.getMessage());
                     throw new AssertionError("Could not load image view.", throwable);
                 }));
 
@@ -89,11 +92,11 @@ public class ImageNode extends Node implements Node.OnTapListener {
                     MetaParser metaParser = new MetaParser(new File(filepath));
 
                     // Assign data
-                    metaName.setText(metaParser.getFileName());
-                    metaTime.setText(metaParser.getFileTime());
-                    metaRes.setText(metaParser.getFileRes());
-                    metaSize.setText(metaParser.getFileSize());
-                    metaLocation.setText(metaParser.getTakenLocation());
+//                    metaName.setText(metaParser.getFileName());
+//                    metaTime.setText(metaParser.getFileTime());
+//                    metaRes.setText(metaParser.getFileRes());
+//                    metaSize.setText(metaParser.getFileSize());
+//                    metaLocation.setText(metaParser.getTakenLocation());
 
                     // Done loading
                     metaLoaded = true;
@@ -102,6 +105,7 @@ public class ImageNode extends Node implements Node.OnTapListener {
                     attemptPositionMetaNode();
                 })
         .exceptionally(throwable -> {
+            System.out.println("Throwable - " + throwable.getMessage());
             throw new AssertionError("Could not load meta view.", throwable);
         });
     }
@@ -109,13 +113,14 @@ public class ImageNode extends Node implements Node.OnTapListener {
     private void attemptPositionMetaNode() {
         if(imageLoaded && metaLoaded) {
             // Locally position the metadata renderable
-            metaDataNode.setParent(imageNode);
+            metaDataNode.setParent(this);
+            System.out.println("Img width - " + imgWidth);
+            System.out.println("Img height - " + imgHeight);
             float metersToPixelRatio = imageViewRenderable.getMetersToPixelsRatio();
-            float rightSideX = (imgWidth * metersToPixelRatio) / 2;
-            float midPointY = (imgHeight * metersToPixelRatio) / 2;
-            metaDataNode.setLocalPosition(new Vector3(rightSideX,  midPointY, 0));
-            Toast.makeText(context, "right side " + rightSideX, Toast.LENGTH_SHORT).show();
-            Toast.makeText(context, "midpoint " + midPointY, Toast.LENGTH_SHORT).show();
+            System.out.println("MtPR - " + metersToPixelRatio);
+            float rightSideX = (imgWidth * metersToPixelRatio) / (float) 6.5;
+            System.out.println("Right side - " + rightSideX);
+            metaDataNode.setLocalPosition(new Vector3(rightSideX,  0, 0));
         }
     }
 
@@ -128,12 +133,12 @@ public class ImageNode extends Node implements Node.OnTapListener {
 
     @Override
     public void onTap(HitTestResult hitTestResult, MotionEvent motionEvent) {
-        if (metaDataNode == null) {
+        if (!metaLoaded) {
+            Toast.makeText(context, "No metadata available", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        Toast.makeText(context, "You did a tapping", Toast.LENGTH_SHORT).show();
-
+        Toast.makeText(context, "Spawning", Toast.LENGTH_SHORT).show();
         metaDataNode.setEnabled(!metaDataNode.isEnabled());
     }
 }

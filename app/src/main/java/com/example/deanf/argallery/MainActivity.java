@@ -66,53 +66,42 @@ public class MainActivity extends AppCompatActivity {
         btnRetry = findViewById(R.id.btn_retry);
 
         // Button click listeners
-        btnChooseFile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(!canLaunch) {
-                    // Check permissions
-                    if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)
-                            != PackageManager.PERMISSION_GRANTED) {
-                        // Check if the user stopped permission requests
-                        if(!ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                            Snackbar snackbar = Snackbar.make(layout, "Please enable file permissions in settings.", 5000);
-                            snackbar.show();
-                            return;
-                        }
-                        // Request permissions
-                        ActivityCompat.requestPermissions(MainActivity.this,
-                                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                                READ_PERMISSION_REQUEST);
-                    }
-                    else {
-                        // Choose a file
-                        chooseFile();
-                    }
-                }
-                else {
-                    // Move to AR Activity
-                    Intent launchARIntent = new Intent(MainActivity.this, ARActivity.class);
-                    launchARIntent.putExtra("Filepath", filePath);
-                    startActivity(launchARIntent);
-                }
-            }
-        });
-
-        btnRetry.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        btnChooseFile.setOnClickListener(v -> {
+            if(!canLaunch) {
                 // Check permissions
                 if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)
                         != PackageManager.PERMISSION_GRANTED) {
+                    // Check if the user stopped permission requests
                     // Request permissions
                     ActivityCompat.requestPermissions(MainActivity.this,
-                            new String[]{Manifest.permission.READ_CONTACTS},
+                            new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                             READ_PERMISSION_REQUEST);
                 }
                 else {
                     // Choose a file
                     chooseFile();
                 }
+            }
+            else {
+                // Move to AR Activity
+                Intent launchARIntent = new Intent(MainActivity.this, ARActivity.class);
+                launchARIntent.putExtra("Filepath", filePath);
+                startActivity(launchARIntent);
+            }
+        });
+
+        btnRetry.setOnClickListener(v -> {
+            // Check permissions
+            if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                // Request permissions
+                ActivityCompat.requestPermissions(MainActivity.this,
+                        new String[]{Manifest.permission.READ_CONTACTS},
+                        READ_PERMISSION_REQUEST);
+            }
+            else {
+                // Choose a file
+                chooseFile();
             }
         });
     }
@@ -130,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void chooseFile() {
         // Create file explorer intent for result
-        Intent getFileIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);
+        Intent getFileIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         getFileIntent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
 
         // Make sure that the user has something to find the file with
@@ -195,26 +184,6 @@ public class MainActivity extends AppCompatActivity {
                 }
                 return;
             }
-        }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_settings:
-                // Open the settings activity
-                // TODO
-                Toast.makeText(this, "Coming soon", Toast.LENGTH_SHORT).show();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
         }
     }
 }

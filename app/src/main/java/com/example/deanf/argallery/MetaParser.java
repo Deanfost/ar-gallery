@@ -29,15 +29,13 @@ public class MetaParser {
 
     public MetaParser(File image) {
         try {
+            this.image = image;
             this.metadata = ImageMetadataReader.readMetadata(image);
             exifSubIFDDirectory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
             exifSubIFDDescriptor = new ExifSubIFDDescriptor(exifSubIFDDirectory);
             gpsDirectory = metadata.getFirstDirectoryOfType(GpsDirectory.class);
             gpsDescriptor = new GpsDescriptor(gpsDirectory);
-            this.image = image;
-        } catch (ImageProcessingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (ImageProcessingException | IOException e) {
             e.printStackTrace();
         }
     }
@@ -49,10 +47,15 @@ public class MetaParser {
 
     public String getFileTime() {
         // Get the time the image was taken
-        Date date = exifSubIFDDirectory.getDateOriginal(TimeZone.getDefault());
-        if(date != null) {
-            DateFormat df = new SimpleDateFormat("MM/dd/yyyy hh:mm:aa");
-            return df.format(date);
+        if(exifSubIFDDirectory != null) {
+            Date date = exifSubIFDDirectory.getDateOriginal(TimeZone.getDefault());
+            if(date != null) {
+                DateFormat df = new SimpleDateFormat("MM/dd/yyyy hh:mm:aa");
+                return df.format(date);
+            }
+            else {
+                return "Date Taken - N/A";
+            }
         }
         else {
             return "Date Taken - N/A";
@@ -61,16 +64,22 @@ public class MetaParser {
 
     public String getFileRes() {
         // Get width x height of image
-        String width = exifSubIFDDescriptor.getExifImageWidthDescription();
-        String height = exifSubIFDDescriptor.getExifImageHeightDescription();
-        if(width != null && height != null) {
-            width = width.substring(0, width.lastIndexOf(" "));
-            height = height.substring(0, height.lastIndexOf(" "));
-            return width + "x" + height;
+        if(exifSubIFDDescriptor != null) {
+            String width = exifSubIFDDescriptor.getExifImageWidthDescription();
+            String height = exifSubIFDDescriptor.getExifImageHeightDescription();
+            if(width != null && height != null) {
+                width = width.substring(0, width.lastIndexOf(" "));
+                height = height.substring(0, height.lastIndexOf(" "));
+                return width + "x" + height;
+            }
+            else {
+                return "Resolution - N/A";
+            }
         }
         else {
             return "Resolution - N/A";
         }
+
     }
 
     public String getFileSize() {
@@ -81,9 +90,14 @@ public class MetaParser {
 
     public String getTakenLocation() {
         // Get coordinates of image's location and convert from DMS to decimal
-        String lat = gpsDescriptor.getGpsLatitudeDescription();
-        String lon = gpsDescriptor.getGpsLongitudeDescription();
-        return (lat != null && lon != null) ? lat + ", " + lon : "Location - N/A";
+        if(gpsDescriptor != null) {
+            String lat = gpsDescriptor.getGpsLatitudeDescription();
+            String lon = gpsDescriptor.getGpsLongitudeDescription();
+            return (lat != null && lon != null) ? lat + ", " + lon : "Location - N/A";
+        }
+        else {
+            return "Location - N/A";
+        }
     }
 
     public void logAllData() {

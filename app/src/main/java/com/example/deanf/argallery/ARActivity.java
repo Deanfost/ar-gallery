@@ -1,10 +1,13 @@
 package com.example.deanf.argallery;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,6 +19,7 @@ import com.google.ar.core.Anchor;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.sceneform.AnchorNode;
+import com.google.ar.sceneform.math.Quaternion;
 import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.BaseArFragment;
@@ -23,8 +27,6 @@ import com.google.ar.sceneform.ux.BaseArFragment;
 public class ARActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final double MIN_OPENGL_VERSION = 3.1;
-    // Scaling from pixels to meters (1080px -> .54m)
-    private static final double IMAGE_SCALE_FACTOR = 1;
 
     private ArFragment arFragment;
     ImageNode imageNode;
@@ -47,15 +49,20 @@ public class ARActivity extends AppCompatActivity {
         filepath = getIntent().getStringExtra("Filepath");
         layout = findViewById(R.id.ar_layout);
 
-        // Create the first ImageNode
-        imageNode = new ImageNode(filepath, IMAGE_SCALE_FACTOR, ARActivity.this);
-        imageNode.initialize();
+        // Check file read permissions
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            Snackbar snackbar = Snackbar.make(layout, "Please grant file read permissions in settings.", 5000);
+            snackbar.show();
+        }
+        else {
+            // Create the ImageNode
+            imageNode = new ImageNode(arFragment.getTransformationSystem());
+            imageNode.initialize(filepath, ARActivity.this);
 
-        // Setup a tap listener
-        arFragment.setOnTapArPlaneListener(new BaseArFragment.OnTapArPlaneListener() {
-            @Override
-            public void onTapPlane(HitResult hitResult, Plane plane, MotionEvent motionEvent) {
-                if(imageNode.imageLoaded && imageNode.metaLoaded) {
+            // Setup a tap listener
+            arFragment.setOnTapArPlaneListener((hitResult, plane, motionEvent) -> {
+                if(imageNode.imageLoaded) {
 
                     // Create an anchor
                     Anchor anchor = hitResult.createAnchor();
@@ -66,18 +73,16 @@ public class ARActivity extends AppCompatActivity {
                     imageNode.setParent(anchorNode);
                     imageNode.setEnabled(true);
                     imageNode.setLocalPosition(new Vector3(0, (float) .5, 0));
+//                imageNode.setLocalRotation(Quaternion.rotateVector(new Vector3()));
 
-                    // Todo - find a new image from storage, create new node
-//                    findNewFile();
-//                    imageNode = createNewNode();
                 }
-            }
-        });
+            });
 
-        // Display a snackbar to tell the user how to get started
-        Snackbar snackbar =
-                Snackbar.make(layout, "Tap to place an image on a discovered surface.", 5000);
-        snackbar.show();
+            // Display a snackbar to tell the user how to get started
+            Snackbar snackbar =
+                    Snackbar.make(layout, "Tap to place an image on a discovered surface.", 5000);
+            snackbar.show();
+        }
     }
 
     public static boolean checkIsSupportedDeviceOrFinish(final Activity activity) {
@@ -99,13 +104,5 @@ public class ARActivity extends AppCompatActivity {
             return false;
         }
         return true;
-    }
-
-    private void findNewFile() {
-
-    }
-
-    private ImageNode createNewNode() {
-        return null;
     }
 }
