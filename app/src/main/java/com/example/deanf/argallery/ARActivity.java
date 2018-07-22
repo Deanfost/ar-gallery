@@ -57,13 +57,12 @@ public class ARActivity extends AppCompatActivity {
         }
         else {
             // Create the ImageNode
-            imageNode = new ImageNode(arFragment.getTransformationSystem());
-            imageNode.initialize(filepath, ARActivity.this);
+            imageNode = new ImageNode(filepath, ARActivity.this);
+            imageNode.initialize();
 
             // Setup a tap listener
             arFragment.setOnTapArPlaneListener((hitResult, plane, motionEvent) -> {
-                if(imageNode.imageLoaded) {
-
+                if(imageNode.isLoaded) {
                     // Create an anchor
                     Anchor anchor = hitResult.createAnchor();
                     AnchorNode anchorNode = new AnchorNode(anchor);

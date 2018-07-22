@@ -2,7 +2,7 @@
     <ImageView
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/img_view"
-        android:layout_width="124dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:scaleType="fitXY"
         android:adjustViewBounds="true"

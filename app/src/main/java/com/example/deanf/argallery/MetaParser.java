@@ -1,11 +1,14 @@
 package com.example.deanf.argallery;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.widget.Toast;
+
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.Tag;
-import com.drew.metadata.exif.ExifSubIFDDescriptor;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.drew.metadata.exif.GpsDescriptor;
 import com.drew.metadata.exif.GpsDirectory;
@@ -19,22 +22,13 @@ import java.util.TimeZone;
 
 public class MetaParser {
     private final Double B_TO_MB_RATIO = 0.000001;
-
     private Metadata metadata;
-    private ExifSubIFDDirectory exifSubIFDDirectory;
-    private ExifSubIFDDescriptor exifSubIFDDescriptor;
-    private GpsDirectory gpsDirectory;
-    private GpsDescriptor gpsDescriptor;
     private File image;
 
     public MetaParser(File image) {
+        this.image = image;
         try {
-            this.image = image;
             this.metadata = ImageMetadataReader.readMetadata(image);
-            exifSubIFDDirectory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
-            exifSubIFDDescriptor = new ExifSubIFDDescriptor(exifSubIFDDirectory);
-            gpsDirectory = metadata.getFirstDirectoryOfType(GpsDirectory.class);
-            gpsDescriptor = new GpsDescriptor(gpsDirectory);
         } catch (ImageProcessingException | IOException e) {
             e.printStackTrace();
         }
@@ -42,58 +36,46 @@ public class MetaParser {
 
     public String getFileName() {
         // Get filename
+        System.out.println(image.getName());
         return image.getName();
     }
 
-    public String getFileTime() {
-        // Get the time the image was taken
-        if(exifSubIFDDirectory != null) {
-            Date date = exifSubIFDDirectory.getDateOriginal(TimeZone.getDefault());
-            if(date != null) {
-                DateFormat df = new SimpleDateFormat("MM/dd/yyyy hh:mm:aa");
-                return df.format(date);
-            }
-            else {
-                return "Date Taken - N/A";
-            }
-        }
-        else {
-            return "Date Taken - N/A";
-        }
+    public String getLastModified() {
+        // Get time the image was last modified
+        DateFormat df = new SimpleDateFormat("MM/dd/yyyy hh:mm:aa");
+        Date lastModified = new Date(image.lastModified());
+        System.out.println(df.format(lastModified));
+        return df.format(lastModified);
     }
 
     public String getFileRes() {
         // Get width x height of image
-        if(exifSubIFDDescriptor != null) {
-            String width = exifSubIFDDescriptor.getExifImageWidthDescription();
-            String height = exifSubIFDDescriptor.getExifImageHeightDescription();
-            if(width != null && height != null) {
-                width = width.substring(0, width.lastIndexOf(" "));
-                height = height.substring(0, height.lastIndexOf(" "));
-                return width + "x" + height;
-            }
-            else {
-                return "Resolution - N/A";
-            }
-        }
-        else {
-            return "Resolution - N/A";
-        }
-
+        Bitmap bitmap = BitmapFactory.decodeFile(image.getPath());
+        System.out.println(bitmap.getWidth() + " " + bitmap.getHeight());
+        return bitmap.getWidth() + " x " + bitmap.getHeight();
     }
 
     public String getFileSize() {
         // Get size of image in bytes then convert to mb
         Double fileSize = image.length() * B_TO_MB_RATIO;
+        System.out.println(fileSize);
         return (fileSize != 0) ? Double.toString(Math.round(fileSize * 100.0) / 100.0) + "MB" : "Size - N/A";
     }
 
     public String getTakenLocation() {
         // Get coordinates of image's location and convert from DMS to decimal
-        if(gpsDescriptor != null) {
-            String lat = gpsDescriptor.getGpsLatitudeDescription();
-            String lon = gpsDescriptor.getGpsLongitudeDescription();
-            return (lat != null && lon != null) ? lat + ", " + lon : "Location - N/A";
+        if(metadata.containsDirectoryOfType(GpsDirectory.class)) {
+            GpsDescriptor gpsDescriptor;
+            // Loop through and attempt to find the coordinates
+            for(GpsDirectory d : metadata.getDirectoriesOfType(GpsDirectory.class)) {
+                gpsDescriptor = new GpsDescriptor(d);
+                String lat = gpsDescriptor.getGpsLatitudeDescription();
+                String lon = gpsDescriptor.getGpsLongitudeDescription();
+                System.out.println(lat);
+                System.out.println(lon);
+                return (lat != null && lon != null) ? lat + ", " + lon : "Location - N/A";
+            }
+            return "Location - N/A";
         }
         else {
             return "Location - N/A";

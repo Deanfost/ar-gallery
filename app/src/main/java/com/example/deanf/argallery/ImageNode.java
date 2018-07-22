@@ -12,15 +12,17 @@ import com.google.ar.sceneform.HitTestResult;
 import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.ViewRenderable;
-import com.google.ar.sceneform.ux.TransformableNode;
-import com.google.ar.sceneform.ux.TransformationSystem;
 
 import java.io.File;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
-public class ImageNode extends TransformableNode implements Node.OnTapListener {
+public class ImageNode extends Node implements Node.OnTapListener {
+    private final int PIXEL_TO_METER_RATIO = 3000;
+
     private Bitmap image;
     private float imgWidth, imgHeight;
-    public boolean imageLoaded, metaLoaded = false;
+    public boolean isLoaded = false;
     private String filepath;
 
     private Node imageNode;
@@ -29,11 +31,7 @@ public class ImageNode extends TransformableNode implements Node.OnTapListener {
     private ViewRenderable metaViewRenderable;
     private Context context;
 
-    public ImageNode(TransformationSystem transformationSystem) {
-        super(transformationSystem);
-    }
-
-    public void initialize(String filepath, Context context) {
+    public ImageNode(String filepath, Context context) {
         this.filepath = filepath;
         this.context = context;
         setOnTapListener(this);
@@ -43,85 +41,72 @@ public class ImageNode extends TransformableNode implements Node.OnTapListener {
         image = BitmapFactory.decodeFile(filepath);
         imgWidth = image.getWidth();
         imgHeight = image.getHeight();
+    }
 
+    public void initialize() {
         // Setup the ImageView and MetaData renderables
         imageNode = new Node();
         imageNode.setParent(this);
         imageNode.setEnabled(true);
 
-        ViewRenderable.builder()
-                .setView(context, R.layout.widget_image)
-                .build()
-                .thenAccept(viewRenderable -> {
-                    imageNode.setRenderable(viewRenderable);
-                    imageViewRenderable = (ViewRenderable) imageNode.getRenderable();
-
-                    // Set the image source
-                    ImageView imageView = (ImageView) imageViewRenderable.getView();
-                    imageView.setImageBitmap(image);
-
-                    // Done loading
-                    imageLoaded = true;
-
-                    // Attempt to position the meta node
-                    attemptPositionMetaNode();
-                })
-                .exceptionally((throwable -> {
-                    System.out.println(throwable.getMessage());
-                    throw new AssertionError("Could not load image view.", throwable);
-                }));
-
         metaDataNode = new Node();
         metaDataNode.setEnabled(false);
 
-        ViewRenderable.builder()
-                .setView(context, R.layout.widget_metadata)
-                .build()
-                .thenAccept(viewRenderable -> {
-                    metaDataNode.setRenderable(viewRenderable);
-                    metaViewRenderable = viewRenderable;
+        CompletableFuture<ViewRenderable> imageStage =
+                ViewRenderable.builder().setView(context, R.layout.widget_image).build();
+        CompletableFuture<ViewRenderable> metaStage =
+                ViewRenderable.builder().setView(context, R.layout.widget_metadata).build();
 
-                    // Get metadata view references
-                    TextView metaName = metaViewRenderable.getView().findViewById(R.id.meta_name);
-                    TextView metaTime = metaViewRenderable.getView().findViewById(R.id.meta_time);
-                    TextView metaRes = metaViewRenderable.getView().findViewById(R.id.meta_res);
-                    TextView metaSize = metaViewRenderable.getView().findViewById(R.id.meta_size);
-                    TextView metaLocation = metaViewRenderable.getView().findViewById(R.id.meta_location);
+        CompletableFuture.allOf(imageStage, metaStage)
+                .handle((notUsed, throwable) -> {
+                    if (throwable != null) {
+                        throwable.printStackTrace();
+                        Toast.makeText(context, "Unable to load renderable", Toast.LENGTH_SHORT).show();
+                        return null;
+                    }
 
-                    // Get metadata of images
-                    MetaParser metaParser = new MetaParser(new File(filepath));
+                    try {
+                        // Setup the image node
+                        imageNode.setRenderable(imageStage.get());
+                        imageViewRenderable = (ViewRenderable) imageNode.getRenderable();
+                        imageViewRenderable.setPixelsToMetersRatio(PIXEL_TO_METER_RATIO);
+                        ImageView imageView = (ImageView) imageViewRenderable.getView();
+                        imageView.setImageBitmap(image);
 
-                    // Assign data
-//                    metaName.setText(metaParser.getFileName());
-//                    metaTime.setText(metaParser.getFileTime());
-//                    metaRes.setText(metaParser.getFileRes());
-//                    metaSize.setText(metaParser.getFileSize());
-//                    metaLocation.setText(metaParser.getTakenLocation());
+                        // Setup the meta node
+                        metaDataNode.setRenderable(metaStage.get());
+                        metaViewRenderable = (ViewRenderable) metaDataNode.getRenderable();
+                        TextView metaName = metaViewRenderable.getView().findViewById(R.id.meta_name);
+                        TextView metaTime = metaViewRenderable.getView().findViewById(R.id.meta_time);
+                        TextView metaRes = metaViewRenderable.getView().findViewById(R.id.meta_res);
+                        TextView metaSize = metaViewRenderable.getView().findViewById(R.id.meta_size);
+                        TextView metaLocation = metaViewRenderable.getView().findViewById(R.id.meta_location);
 
-                    // Done loading
-                    metaLoaded = true;
+                        MetaParser metaParser = new MetaParser(new File(filepath));
+                        metaName.setText(metaParser.getFileName());
+                        metaTime.setText(metaParser.getLastModified());
+                        metaRes.setText(metaParser.getFileRes());
+                        metaSize.setText(metaParser.getFileSize());
+                        metaLocation.setText(metaParser.getTakenLocation());
 
-                    // Attempt to position the meta node
-                    attemptPositionMetaNode();
-                })
-        .exceptionally(throwable -> {
-            System.out.println("Throwable - " + throwable.getMessage());
-            throw new AssertionError("Could not load meta view.", throwable);
-        });
-    }
+                        metaDataNode.setParent(imageNode);
+                        System.out.println("Img width - " + imgWidth);
+                        System.out.println("Img height - " + imgHeight);
+                        float metersToPixelRatio = imageViewRenderable.getMetersToPixelsRatio();
+                        System.out.println("MtPR - " + metersToPixelRatio);
+                        float rightSideX = (imgWidth * metersToPixelRatio) / (float) 2;
+                        System.out.println("Right side - " + rightSideX);
+                        metaDataNode.setLocalPosition(new Vector3(rightSideX,  0, 0));
 
-    private void attemptPositionMetaNode() {
-        if(imageLoaded && metaLoaded) {
-            // Locally position the metadata renderable
-            metaDataNode.setParent(this);
-            System.out.println("Img width - " + imgWidth);
-            System.out.println("Img height - " + imgHeight);
-            float metersToPixelRatio = imageViewRenderable.getMetersToPixelsRatio();
-            System.out.println("MtPR - " + metersToPixelRatio);
-            float rightSideX = (imgWidth * metersToPixelRatio) / (float) 6.5;
-            System.out.println("Right side - " + rightSideX);
-            metaDataNode.setLocalPosition(new Vector3(rightSideX,  0, 0));
-        }
+                        isLoaded = true;
+
+                    } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
+                        Toast.makeText(context, "An error occurred", Toast.LENGTH_SHORT).show();
+                    }
+
+                    return null;
+                });
     }
 
     @Override
@@ -133,12 +118,10 @@ public class ImageNode extends TransformableNode implements Node.OnTapListener {
 
     @Override
     public void onTap(HitTestResult hitTestResult, MotionEvent motionEvent) {
-        if (!metaLoaded) {
-            Toast.makeText(context, "No metadata available", Toast.LENGTH_SHORT).show();
+        if (metaDataNode == null) {
             return;
         }
 
-        Toast.makeText(context, "Spawning", Toast.LENGTH_SHORT).show();
         metaDataNode.setEnabled(!metaDataNode.isEnabled());
     }
 }
