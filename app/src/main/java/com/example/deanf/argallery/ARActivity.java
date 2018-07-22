@@ -68,12 +68,10 @@ public class ARActivity extends AppCompatActivity {
                     AnchorNode anchorNode = new AnchorNode(anchor);
                     anchorNode.setParent(arFragment.getArSceneView().getScene());
 
-                    // Assign the ImageNode to the anchor, enable
+                    // Assign the ImageNode to the anchor, rotate, enable
                     imageNode.setParent(anchorNode);
+                    imageNode.setLocalRotation(new Quaternion(new Vector3(1, 0, 0), -90));
                     imageNode.setEnabled(true);
-                    imageNode.setLocalPosition(new Vector3(0, (float) .5, 0));
-//                imageNode.setLocalRotation(Quaternion.rotateVector(new Vector3()));
-
                 }
             });
 

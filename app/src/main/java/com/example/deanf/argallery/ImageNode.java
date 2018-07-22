@@ -21,7 +21,7 @@ public class ImageNode extends Node implements Node.OnTapListener {
     private final int PIXEL_TO_METER_RATIO = 3000;
 
     private Bitmap image;
-    private float imgWidth, imgHeight;
+    private float imgHeight;
     public boolean isLoaded = false;
     private String filepath;
 
@@ -39,7 +39,6 @@ public class ImageNode extends Node implements Node.OnTapListener {
 
         // Calculate dimens of the image, set references
         image = BitmapFactory.decodeFile(filepath);
-        imgWidth = image.getWidth();
         imgHeight = image.getHeight();
     }
 
@@ -90,13 +89,10 @@ public class ImageNode extends Node implements Node.OnTapListener {
                         metaLocation.setText(metaParser.getTakenLocation());
 
                         metaDataNode.setParent(imageNode);
-                        System.out.println("Img width - " + imgWidth);
-                        System.out.println("Img height - " + imgHeight);
                         float metersToPixelRatio = imageViewRenderable.getMetersToPixelsRatio();
-                        System.out.println("MtPR - " + metersToPixelRatio);
-                        float rightSideX = (imgWidth * metersToPixelRatio) / (float) 2;
-                        System.out.println("Right side - " + rightSideX);
-                        metaDataNode.setLocalPosition(new Vector3(rightSideX,  0, 0));
+                        float bottomYDistance = (imgHeight * metersToPixelRatio) / (float) 2;
+                        float bottomMargin = (float) .005;
+                        metaDataNode.setLocalPosition(new Vector3(0,  -bottomYDistance, 0));
 
                         isLoaded = true;
 
