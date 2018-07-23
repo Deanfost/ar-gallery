@@ -9,4 +9,4 @@ To use this application, your device must support API Level 24 (Android 7.0 Noug
 ## Libraries and Resources
 * [Google AR Core](https://developers.google.com/ar/discover/) 
 * [Sceneform Library](https://developers.google.com/ar/develop/java/sceneform/)
-
+* [Metadata-Extractor](https://github.com/drewnoakes/metadata-extractor)
