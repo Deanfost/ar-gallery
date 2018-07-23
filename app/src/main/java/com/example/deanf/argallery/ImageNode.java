@@ -10,6 +10,7 @@ import android.widget.Toast;
 
 import com.google.ar.sceneform.HitTestResult;
 import com.google.ar.sceneform.Node;
+import com.google.ar.sceneform.math.Quaternion;
 import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.ViewRenderable;
 
@@ -18,10 +19,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class ImageNode extends Node implements Node.OnTapListener {
-    private final int PIXEL_TO_METER_RATIO = 3000;
+    private final int PIXEL_TO_METER_RATIO = 2000;
 
     private Bitmap image;
-    private float imgHeight;
     public boolean isLoaded = false;
     private String filepath;
 
@@ -34,12 +34,10 @@ public class ImageNode extends Node implements Node.OnTapListener {
     public ImageNode(String filepath, Context context) {
         this.filepath = filepath;
         this.context = context;
+        this.image = BitmapFactory.decodeFile(filepath);
+
         setOnTapListener(this);
         this.setEnabled(false);
-
-        // Calculate dimens of the image, set references
-        image = BitmapFactory.decodeFile(filepath);
-        imgHeight = image.getHeight();
     }
 
     public void initialize() {
@@ -49,6 +47,7 @@ public class ImageNode extends Node implements Node.OnTapListener {
         imageNode.setEnabled(true);
 
         metaDataNode = new Node();
+        metaDataNode.setParent(this);
         metaDataNode.setEnabled(false);
 
         CompletableFuture<ViewRenderable> imageStage =
@@ -88,12 +87,7 @@ public class ImageNode extends Node implements Node.OnTapListener {
                         metaSize.setText(metaParser.getFileSize());
                         metaLocation.setText(metaParser.getTakenLocation());
 
-                        metaDataNode.setParent(imageNode);
-                        float metersToPixelRatio = imageViewRenderable.getMetersToPixelsRatio();
-                        float bottomYDistance = (imgHeight * metersToPixelRatio) / (float) 2;
-                        float bottomMargin = (float) .005;
-                        metaDataNode.setLocalPosition(new Vector3(0,  -bottomYDistance, 0));
-
+                        metaDataNode.setLocalPosition(new Vector3(0, 0, (float) .15));
                         isLoaded = true;
 
                     } catch (InterruptedException | ExecutionException e) {

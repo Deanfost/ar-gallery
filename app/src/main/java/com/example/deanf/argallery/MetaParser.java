@@ -42,7 +42,7 @@ public class MetaParser {
 
     public String getLastModified() {
         // Get time the image was last modified
-        DateFormat df = new SimpleDateFormat("MM/dd/yyyy hh:mm:aa");
+        DateFormat df = new SimpleDateFormat("MM/dd/yyyy hh:mmaa");
         Date lastModified = new Date(image.lastModified());
         System.out.println(df.format(lastModified));
         return df.format(lastModified);
